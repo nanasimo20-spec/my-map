@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Mostaganem Shops</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+    #map { height: 100%; display: block; }
+    #list { display: none; padding: 15px; }
+    .top-bar {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+    }
+    .top-bar button {
+      margin: 0 5px;
+      padding: 8px 16px;
+      border: none;
+      background: #007BFF;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .top-bar button:hover {
+      background: #0056b3;
+    }
+    .shop-item {
+      margin-bottom: 12px;
+      padding: 10px;
+      border-bottom: 1px solid #ccc;
+    }
+    .shop-name {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <button onclick="showMap()">Map</button>
+    <button onclick="showList()">List</button>
+  </div>
+  <div id="map"></div>
+  <div id="list"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Initialize map
+    var map = L.map('map').setView([35.9311, 0.0890], 13); // Mostaganem center
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // Shops data
+    var shops = [
+      { name: "Shop 1 - Mobile Store", coords: [35.9311, 0.0890], address: "Downtown Mostaganem" },
+      { name: "Shop 2 - Phone Market", coords: [35.9350, 0.0950], address: "Near University" },
+      { name: "Shop 3 - Recharge Point", coords: [35.9290, 0.0800], address: "Old City" },
+      { name: "Shop 4 - Telecom Store", coords: [35.9400, 0.1000], address: "North Area" },
+      { name: "Shop 5 - Mobile Services", coords: [35.9270, 0.0850], address: "South Side" }
+    ];
+
+    // Add markers
+    shops.forEach(function(shop) {
+      L.marker(shop.coords).addTo(map)
+        .bindPopup("<b>" + shop.name + "</b><br>" + shop.address);
+    });
+
+    // List view
+    function renderList() {
+      var listDiv = document.getElementById("list");
+      listDiv.innerHTML = "";
+      shops.forEach(function(shop) {
+        var div = document.createElement("div");
+        div.className = "shop-item";
+        div.innerHTML = "<div class='shop-name'>" + shop.name + "</div><div>" + shop.address + "</div>";
+        listDiv.appendChild(div);
+      });
+    }
+
+    // Toggle
+    function showMap() {
+      document.getElementById("map").style.display = "block";
+      document.getElementById("list").style.display = "none";
+      map.invalidateSize();
+    }
+    function showList() {
+      document.getElementById("map").style.display = "none";
+      document.getElementById("list").style.display = "block";
+      renderList();
+    }
+  </script>
+</body>
+</html>
