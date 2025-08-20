@@ -4,146 +4,105 @@
   <meta charset="utf-8" />
   <title>Shops Locations</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <!-- Geocoder CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-  <!-- Locate CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
-
   <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: Arial, sans-serif;
-    }
-    #map { 
-      height: 100%; 
-      width: 100%;
-      display: block; 
-    }
-    #list { 
-      display: none; 
-      padding: 60px 15px 15px 15px; 
-    }
-
-    /* Top bar */
-    .top-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      display: flex;
-      z-index: 5000; /* أعلى من أزرار Leaflet */
-    }
-    .top-bar button {
-      flex: 1;
-      padding: 12px 0;
-      border: none;
-      background: #f7f7f7;
-      color: black;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 16px;
-    }
-    .top-bar button:hover {
-      background: #e0e0e0;
-    }
-
-    /* Shops list */
-    .shop-item {
-      margin-bottom: 12px;
-      padding: 10px;
-      border-bottom: 1px solid #ccc;
-      cursor: pointer;
-    }
-    .shop-item:hover {
-      background-color: #f5f5f5;
-    }
-    .shop-name {
-      font-weight: bold;
-    }
-
-    /* Fix Leaflet controls position (move them down a bit) */
-    .leaflet-top {
-      margin-top: 55px; /* space for the top bar */
-    }
-
-    /* Locate button style */
-    .leaflet-control-locate a {
-      background: white !important;
-      color: #0078ff !important;
-    }
-    .leaflet-control-locate a svg {
-      stroke: #0078ff !important;
-      fill: #0078ff !important;
-    }
+    body, html { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif; }
+    #map { height: 100%; width: 100%; display: block; }
+    #list { display: none; padding: 60px 15px 15px 15px; }
+    .top-bar { position: fixed; top: 0; left: 0; width: 100%; display: flex; z-index: 5000; }
+    .top-bar button { flex: 1; padding: 12px 0; border: none; background: #f7f7f7; color: black; cursor: pointer; font-weight: bold; font-size: 16px; }
+    .top-bar button:hover { background: #e0e0e0; }
+    .shop-item { margin-bottom: 12px; padding: 10px; border-bottom: 1px solid #ccc; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .shop-item:hover { background-color: #f5f5f5; }
+    .shop-name { font-weight: bold; }
+    .leaflet-top { margin-top: 55px; }
+    .leaflet-control-locate a { background: white !important; color: #0078ff !important; }
+    .leaflet-control-locate a svg { stroke: #0078ff !important; fill: #0078ff !important; }
   </style>
 </head>
 <body>
-  <!-- Top bar -->
   <div class="top-bar">
     <button onclick="showMap()">Map</button>
     <button onclick="showList()">List</button>
   </div>
 
-  <!-- Map and List -->
   <div id="map"></div>
   <div id="list"></div>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <!-- Geocoder JS -->
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-  <!-- Locate JS -->
   <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
-
   <script>
-    // Initialize map
     var map = L.map('map').setView([31.5, 34.47], 13);
 
-    // Tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    // Shops data
+    var userLatLng = null;
+
     var shops = [
-      { name: "Shop 1 - Mobile Store", coords: [35.9311, 0.0890], address: "Downtown Mostaganem" },
-      { name: "Shop 2 - Phone Market", coords: [35.9350, 0.0950], address: "Near University" },
-      { name: "Shop 3 - Recharge Point", coords: [35.9290, 0.0800], address: "Old City" },
-      { name: "Shop 4 - Telecom Store", coords: [35.9400, 0.1000], address: "North Area" },
-      { name: "Shop 5 - Mobile Services", coords: [35.9270, 0.0850], address: "South Side" }
+      { name: "Techno Mart", coords: [25.3745, 51.4910] },
+      { name: "Mobile Store", coords: [35.9311, 0.0890], address: "Downtown Mostaganem" },
+      { name: "Phone Market", coords: [35.9350, 0.0950], address: "Near University" },
+      { name: "Recharge Point", coords: [35.9290, 0.0800], address: "Old City" },
+      { name: "Telecom Store", coords: [35.9400, 0.1000], address: "North Area" },
+      { name: "Mobile Services", coords: [35.9270, 0.0850], address: "South Side" }
     ];
 
-    // Add markers
+    function formatDistance(meters) {
+      if (meters < 1000) return meters.toFixed(0) + " m";
+      return (meters / 1000).toFixed(2) + " km";
+    }
+
     var markers = [];
     shops.forEach(function(shop) {
       var marker = L.marker(shop.coords).addTo(map)
-        .bindPopup("<b>" + shop.name + "</b><br>" + shop.address);
+        .bindPopup("<b>" + shop.name + "</b><br>" + (shop.address || ""));
       markers.push(marker);
     });
 
-    // List view rendering
+    function updatePopups() {
+      shops.forEach(function(shop, i) {
+        var distanceText = "";
+        if (userLatLng) {
+          var d = map.distance(userLatLng, shop.coords);
+          distanceText = "<br><b>" + formatDistance(d) + "</b>";
+        }
+        markers[i].bindPopup("<b>" + shop.name + "</b><br>" +
+          (shop.address || "") + distanceText);
+      });
+    }
+
     function renderList() {
       var listDiv = document.getElementById("list");
       listDiv.innerHTML = "";
       shops.forEach(function(shop, index) {
+        var distanceText = "";
+        if (userLatLng) {
+          var d = map.distance(userLatLng, shop.coords);
+          distanceText = formatDistance(d);
+        }
         var div = document.createElement("div");
         div.className = "shop-item";
-        div.innerHTML = "<div class='shop-name'>" + shop.name + "</div><div>" + shop.address + "</div>";
+        div.innerHTML = `
+          <div>
+            <div class='shop-name'>${shop.name}</div>
+            <div>${shop.address || ""}</div>
+          </div>
+          <div>${distanceText}</div>
+        `;
         div.onclick = function() {
           showMap();
-          map.setView(shop.coords, 16);
+          map.setView(shop.coords, 100a);
           markers[index].openPopup();
         };
         listDiv.appendChild(div);
       });
     }
 
-    // Toggle views
     function showMap() {
       document.getElementById("map").style.display = "block";
       document.getElementById("list").style.display = "none";
@@ -155,31 +114,38 @@
       renderList();
     }
 
-    // Geocoder (Search)
-    L.Control.geocoder({
-      defaultMarkGeocode: true
-    }).addTo(map);
+    L.Control.geocoder({ defaultMarkGeocode: true }).addTo(map);
 
-    // Locate button
-    L.control.locate({
+    // Locate control with live tracking, no popup
+    var lc = L.control.locate({
       position: 'topleft',
       flyTo: true,
+      keepCurrentZoomLevel: false,
+      drawCircle: false,   // disable blue circle
+      drawMarker: true,    // show marker
+      showPopup: false,    // no popup at all
       strings: { title: "My Location" },
       locateOptions: {
-        enableHighAccuracy: true
-      },
-      circleStyle: {
-        color: '#0078ff',
-        fillColor: '#0078ff',
-        fillOpacity: 0.2
-      },
-      markerStyle: {
-        color: '#0078ff',
-        fillColor: '#0078ff'
+        enableHighAccuracy: true,
+        watch: true,        // keep tracking movement
+        maximumAge: 10000,
+        timeout: 10000
       }
     }).addTo(map);
 
-    // Scale
+    // Update distances and follow user, but never show popup
+    map.on('locationfound', function(e) {
+      userLatLng = e.latlng;
+      map.setView(userLatLng, 18); // follow position
+      renderList();
+      updatePopups();
+
+      // if the plugin bound a popup to the marker, remove it
+      if (lc._marker && lc._marker.closePopup) {
+        lc._marker.unbindPopup();
+      }
+    });
+
     L.control.scale().addTo(map);
   </script>
 </body>
