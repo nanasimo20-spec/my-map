@@ -41,6 +41,10 @@
       attribution: '© OpenStreetMap'
     }).addTo(map);
 
+    map.on('locationerror', function() {
+      map.setView([25.3752, 51.4905], 15);
+    });
+
     var userLatLng = null;
 
     var shops = [
@@ -96,7 +100,7 @@
         `;
         div.onclick = function() {
           showMap();
-          map.setView(shop.coords, 100a);
+          map.setView(shop.coords, 16);
           markers[index].openPopup();
         };
         listDiv.appendChild(div);
@@ -116,35 +120,38 @@
 
     L.Control.geocoder({ defaultMarkGeocode: true }).addTo(map);
 
-    // Locate control with live tracking, no popup
+    // Custom locate button (no circle, no toggle, no repeated prompt)
     var lc = L.control.locate({
       position: 'topleft',
       flyTo: true,
       keepCurrentZoomLevel: false,
       drawCircle: false,   // disable blue circle
-      drawMarker: true,    // show marker
-      showPopup: false,    // no popup at all
+      drawMarker: true,    // keep only the marker
+      showPopup: false,
       strings: { title: "My Location" },
       locateOptions: {
         enableHighAccuracy: true,
-        watch: true,        // keep tracking movement
-        maximumAge: 10000,
+        maximumAge: 10000, // reuse recent location
         timeout: 10000
       }
     }).addTo(map);
 
-    // Update distances and follow user, but never show popup
+    // First time → ask permission + center
     map.on('locationfound', function(e) {
       userLatLng = e.latlng;
-      map.setView(userLatLng, 18); // follow position
+      map.setView(userLatLng, 18);
       renderList();
       updatePopups();
-
-      // if the plugin bound a popup to the marker, remove it
-      if (lc._marker && lc._marker.closePopup) {
-        lc._marker.unbindPopup();
-      }
     });
+
+    // Prevent toggle zoom-out when clicking again
+    lc.start = function() {
+      if (userLatLng) {
+        map.setView(userLatLng, 18);
+      } else {
+        this._activate(); // ask only if not already located
+      }
+    };
 
     L.control.scale().addTo(map);
   </script>
